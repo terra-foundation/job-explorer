@@ -1,0 +1,15 @@
+{
+  "file": "serp_expanded_20250711T130747",
+  "timestamp": "2025-07-11T13:07:48.083748",
+  "n_input": 24,
+  "n_filtered": 6,
+  "label_distribution": {
+    "Unknown": 8,
+    "Aggregator_T2": 7,
+    "Aggregator_T1": 4,
+    "Employer": 3,
+    "Aggregator_T3": 2
+  },
+  "n_unique_queries": 3,
+  "n_unique_pages": 24
+}

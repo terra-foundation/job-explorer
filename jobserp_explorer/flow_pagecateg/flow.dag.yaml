@@ -1,0 +1,57 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/Flow.schema.json
+
+inputs:
+  job_index:
+    type: string
+  job_title:
+    type: string
+  company:
+    type: string
+  serp_url:
+    type: string
+  scraped_data:
+    type: string
+  page_uid:           # <-- new field
+    type: string
+
+
+outputs:
+  id:
+    type: string
+    reference: ${inputs.job_index}
+  serp_url:
+    type: string
+    reference: ${inputs.serp_url}
+  page_uid:           # <-- add this if you want downstream traceability
+    type: string
+    reference: ${inputs.page_uid}
+  summary:
+    type: object
+    reference: ${llm_node.output}
+
+
+
+nodes:
+  - name: prompt_template
+    type: prompt
+    source:
+      type: jinja2
+      path: session_summarizer3.jinja2
+    inputs:
+      job_index: ${inputs.job_index}
+      job_title: ${inputs.job_title}
+      company: ${inputs.company}
+      scraped_data: ${inputs.scraped_data}
+
+  - name: llm_node
+    type: python
+    source:
+      type: code
+      path: llm_wrapper.py
+    inputs:
+      prompt: ${prompt_template.output}
+      schema_path: ./session_schema3.json
+      deployment_name: gpt-4o-mini
+    connection: open_ai_connection
+    outputs:
+      output: ${llm_node.result}

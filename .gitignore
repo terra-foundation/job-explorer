@@ -3,6 +3,14 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+
+*.egg-info/
+build/
+testenv/
+__pycache__/
+.env
+
+
 # C extensions
 *.so
 

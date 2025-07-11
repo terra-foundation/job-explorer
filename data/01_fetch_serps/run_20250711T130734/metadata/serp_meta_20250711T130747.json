@@ -1,0 +1,9 @@
+{
+  "start_time": "2025-07-11T13:07:47.496399",
+  "n_rows": 3,
+  "n_successful": 24,
+  "n_skipped": 0,
+  "n_failed": 0,
+  "failed_indices": [],
+  "output_file": "/home/matias/repos/jobserp_explorer/data/01_fetch_serps/run_20250711T130734/01_scraped/serp_expanded_20250711T130747.csv"
+}

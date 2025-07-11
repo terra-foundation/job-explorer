@@ -1,0 +1,38 @@
+{
+  "name": "parsed_message",
+  "description": "Schema for classifying the type of webpage relevant to the job application process.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "page_url": {
+        "type": "string",
+        "description": "The URL of the page being analyzed."
+      },
+      "page_type": {
+        "type": "string",
+        "enum": ["Job Posting", "List of Jobs", "Company Page", "Home Page", "Product/Service Page", "Other"],
+        "description": "Classification of the page. 'Job Posting' means a single job offer page; 'List of Jobs' means a listing of multiple job postings; 'Company Page' includes company overviews, culture, or about us pages; 'Home Page' means the general front page; 'Product/Service Page' means e-learning, pricing, or sales pages; 'Other' means none of the above."
+      },
+      "detected_elements": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Key detected elements on the page that informed the classification, e.g., 'Job Title', 'Locations', 'Product Listings', 'Pricing Tables', 'Company Info', etc."
+      },
+      "recommend_crawl": {
+        "type": "string",
+        "enum": ["Yes", "No"],
+        "description": "Recommendation on whether this page should be crawled for downstream processing."
+      },
+      "recommendation_reasons": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Brief reasons for why this classification and recommendation was made."
+      }
+    },
+    "required": ["page_url", "page_type", "recommend_crawl"]
+  }
+}
