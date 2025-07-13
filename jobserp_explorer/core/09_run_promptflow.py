@@ -31,6 +31,9 @@ def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", d
 
     PYTHON_BIN = Path(sys.executable).resolve()  # capture early
 
+    env = os.environ.copy()
+    env["PYTHONPATH"] = ":".join(sys.path)
+
 
     # STEP: Setup connection before run
     openai_key = os.getenv("OPENAI_API_KEY")
@@ -67,6 +70,7 @@ def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", d
 
 
 
+    # Execute
 
     pf_command = [
         str(PYTHON_BIN), "-m", "promptflow._cli.pf", "run", "create",
@@ -84,9 +88,6 @@ def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", d
     # Record time before execution
     before_time = datetime.now()
 
-    # Execute
-    env = os.environ.copy()
-    env["PYTHONPATH"] = ":".join(sys.path)
 
     result = subprocess.run(
         pf_command,
