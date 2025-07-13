@@ -17,11 +17,25 @@ cfg = AppConfig.from_json(Path("app_config.json"))
 # Use config:
 output_path = Path(cfg.base_data_dir) / cfg.run_format.format(run_uid="20250710T2000")
 
-
+import promptflow
 
 def run_step(script_path, args=None, desc=None):
+    from pathlib import Path
+    import subprocess
+    import sys
+
     args = args or []
-    cmd = [sys.executable, str(script_path)] + args
+
+    # Ensure absolute path from repo root
+    REPO_ROOT = Path(__file__).resolve().parents[2]
+    full_script_path = REPO_ROOT / script_path
+
+    cmd = [sys.executable, str(full_script_path)] + args
+
+    print("Executable:", sys.executable)
+    print("sys.path:", sys.path)
+    print("promptflow.__file__:", promptflow.__file__)
+
     with st.status(desc or f"Running {Path(script_path).name}", expanded=True) as status:
         try:
             result = subprocess.run(cmd, check=True, capture_output=True, text=True)
@@ -36,6 +50,29 @@ def run_step(script_path, args=None, desc=None):
                 st.subheader("Standard Error")
                 st.code(e.stderr)
             status.update(label="❌ Failed", state="error")
+
+            # Show full traceback if script printed it
+            st.subheader("Traceback (from script if any)")
+            traceback_text = e.stderr or e.stdout or "No trace available."
+            st.code(traceback_text, language="python")
+
+# def run_step(script_path, args=None, desc=None):
+#     args = args or []
+#     cmd = [sys.executable, str(script_path)] + args
+#     with st.status(desc or f"Running {Path(script_path).name}", expanded=True) as status:
+#         try:
+#             result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+#             st.code(result.stdout)
+#             status.update(label="✅ Done", state="complete")
+#         except subprocess.CalledProcessError as e:
+#             st.error(f"Error running {script_path}")
+#             if e.stdout:
+#                 st.subheader("Standard Output")
+#                 st.code(e.stdout)
+#             if e.stderr:
+#                 st.subheader("Standard Error")
+#                 st.code(e.stderr)
+#             status.update(label="❌ Failed", state="error")
 
 
 def run_remotive_fetch(query: str, location: str, limit: int, output_path: Path) -> Path:

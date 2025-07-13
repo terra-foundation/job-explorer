@@ -73,7 +73,7 @@ def main(query=None, input_csv=None, run_uid=None):
         input_csv = paths["query_csv"]
 
         run_command([
-            "python", "jobserp_explorer/core/00_fetch_remotive_jobs.py",
+            sys.executable, "jobserp_explorer/core/00_fetch_remotive_jobs.py",
             "--query", query,
             "--limit", "3",
             "--output", str(input_csv)
@@ -101,7 +101,7 @@ def main(query=None, input_csv=None, run_uid=None):
     done_file_serp = paths["base"] / "done_tracker.csv"
 
     run_command([
-        "python", "jobserp_explorer/core/01_serp_scraper.py",
+        sys.executable, "jobserp_explorer/core/01_serp_scraper.py",
         "--input", str(input_csv),
         "--output", str(serp_raw_dir),
         "--jsonl_dir", str(jsonl_serp_dir),
@@ -117,7 +117,7 @@ def main(query=None, input_csv=None, run_uid=None):
     meta_scores_dir = paths["metadata"]
 
     run_command([
-        "python", "jobserp_explorer/core/02_label_and_score.py",
+        sys.executable, "jobserp_explorer/core/02_label_and_score.py",
         "--input_dir", str(serp_raw_dir),
         "--output_dir", str(results_scored),
         "--log_dir", str(logs_scores_dir),
@@ -132,7 +132,7 @@ def main(query=None, input_csv=None, run_uid=None):
     log_jsonl_dir = paths["logs"]
 
     run_command([
-        "python", "jobserp_explorer/core/03_export_results_to_jsonl.py",
+        sys.executable, "jobserp_explorer/core/03_export_results_to_jsonl.py",
         "--input_dir", str(results_scored),
         "--output_dir", str(jsonl_input_dir),
         "--meta_dir", str(meta_jsonl_dir),
@@ -157,7 +157,7 @@ def main(query=None, input_csv=None, run_uid=None):
 
 
     run_command([
-        "python", "jobserp_explorer/core/09_run_promptflow.py",
+        sys.executable, "jobserp_explorer/core/09_run_promptflow.py",
         "--input", str(jsonl_path),
         "--flow_dir", "jobserp_explorer/flow_pagecateg",
         "--output_dir", paths["page_classification_dir"]
@@ -166,7 +166,7 @@ def main(query=None, input_csv=None, run_uid=None):
 
     # Step 4: Scrape selected pages with Selenium
     run_command([
-        "python", "jobserp_explorer/core/05_export_jsonl_with_scraping.py",
+        sys.executable, "jobserp_explorer/core/05_export_jsonl_with_scraping.py",
         "--input_dir", str(results_scored),
         "--output_dir", str(html_scraped)
     ], desc="Step 4: Scrape top SERP pages")
@@ -181,7 +181,7 @@ def main(query=None, input_csv=None, run_uid=None):
     print(f"[✓] Found JSONL file: {jsonl_input}")
 
     run_command([
-        "python", "jobserp_explorer/core/09_run_promptflow.py",
+        sys.executable, "jobserp_explorer/core/09_run_promptflow.py",
         "--input", jsonl_input,
         "--flow_dir", "jobserp_explorer/flow_jobposting",
         "--output_dir", str(jsonl_finalannot)

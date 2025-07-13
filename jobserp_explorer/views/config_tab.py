@@ -16,6 +16,24 @@ def render():
 
     config = AppConfig.from_json(CONFIG_PATH)
 
+    st.header("🔐 API Keys")
+
+    # Environment-style keys (not persisted to file)
+    openai_key = st.text_input("OpenAI API Key", type="password", value=os.getenv("OPENAI_API_KEY") or "")
+    spider_key = st.text_input("Spider API Key", type="password", value=os.getenv("SPIDER_API_KEY") or "")
+
+    if openai_key:
+        os.environ["OPENAI_API_KEY"] = openai_key
+
+    if spider_key:
+        os.environ["SPIDER_API_KEY"] = spider_key
+
+    # Optional visual feedback
+    if not openai_key or not spider_key:
+        st.warning("Some API keys are missing. Certain steps may fail.")
+
+
+
     # 🗂️ Directories
     st.header("📁 Paths")
     config.base_data_dir = st.text_input("Base Data Directory", config.base_data_dir)

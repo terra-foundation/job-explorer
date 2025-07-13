@@ -29,8 +29,9 @@ def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", d
     print(f"[ℹ] Running PromptFlow on: {input_path.name}")
     print(f"[ℹ] Flow directory: {flow_dir}")
 
+    PYTHON_BIN = Path(sys.executable).resolve()  # capture early
     pf_command = [
-        str(sys.executable), "-m", "promptflow._cli.pf", "run", "create",
+        str(PYTHON_BIN), "-m", "promptflow._cli.pf", "run", "create",
         "--flow", str(flow_dir),
         "--data", str(input_path),
     ]
@@ -46,22 +47,44 @@ def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", d
     before_time = datetime.now()
 
     # Execute
-    result = subprocess.run(pf_command, capture_output=True, text=True)
+    env = os.environ.copy()
+    env["PYTHONPATH"] = ":".join(sys.path)
 
-    print("\n[📤] STDOUT:")
-    print(result.stdout)
-    print("\n[📥] STDERR:")
-    print(result.stderr)
+    result = subprocess.run(
+        pf_command,
+        capture_output=True,
+        text=True,
+        env=env  # ✅ use the modified environment
+    )
+    print("[🔍] PYTHONPATH being passed to subprocess:")
+    print(env["PYTHONPATH"])
 
     if result.returncode != 0:
-        print("[✗] PromptFlow execution failed.")
-        sys.exit(1)
+        error_msg = (
+            f"[✗] PromptFlow execution failed with code {result.returncode}\n\n"
+            f"[📤] STDOUT:\n{result.stdout}\n\n"
+            f"[📥] STDERR:\n{result.stderr}"
+        )
+        raise RuntimeError(error_msg)
+
+
+    if not result.stdout and not result.stderr:
+        raise RuntimeError(f"[✗] PromptFlow command failed silently. No logs available.")
+
+
+    print("[📤] STDOUT:")
+    print(result.stdout)
+    print("[📥] STDERR:")
+    print(result.stderr)
+
 
     # Sleep briefly to allow filesystem sync
     time.sleep(1)
 
     # Find most recent .runs folder
-    pf_runs_dir = Path.home() / ".promptflow" / ".runs"
+    pf_home = Path(os.environ.get("PROMPTFLOW_HOME", Path.home() / ".promptflow"))
+    pf_runs_dir = pf_home / ".runs"
+
     recent_runs = []
 
     for d in pf_runs_dir.glob(f"{flow_name}_variant_*"):

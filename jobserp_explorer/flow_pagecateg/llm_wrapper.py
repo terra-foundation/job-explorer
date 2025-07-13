@@ -3,7 +3,12 @@ from openai.version import VERSION as OPENAI_VERSION
 from pathlib import Path
 import json
 from dotenv import load_dotenv
-from promptflow.core import tool
+
+import sys
+sys.path.insert(0, "/home/matias/Documents/dev-testbed/promptflow/src/promptflow-core")
+
+from promptflow._core.tool import tool
+# from promptflow.core import tool
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")  # Goes up 2 levels to project root
 

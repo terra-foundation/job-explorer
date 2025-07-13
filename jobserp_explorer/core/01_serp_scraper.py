@@ -9,9 +9,15 @@ from urllib.parse import urlparse
 from datetime import datetime
 
 import pandas as pd
-import requests
 from tqdm import tqdm
 
+
+try:
+    import requests
+except ModuleNotFoundError:
+    import sys
+    print("❌ Required dependency 'requests' not found. Are you running before installation finished?", file=sys.stderr)
+    sys.exit(1)
 
 # ----------------------------
 # Argumentos CLI

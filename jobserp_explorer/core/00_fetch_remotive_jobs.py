@@ -1,9 +1,18 @@
 #!/usr/bin/env python
 
 import argparse
-import requests
+
 import pandas as pd
 from pathlib import Path
+
+
+try:
+    import requests
+except ModuleNotFoundError:
+    import sys
+    print("❌ Required dependency 'requests' not found. Are you running before installation finished?", file=sys.stderr)
+    sys.exit(1)
+
 
 def fetch_remotive_jobs(query: str, limit: int = 50) -> pd.DataFrame:
     """

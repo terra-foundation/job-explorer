@@ -39,21 +39,62 @@ def file_download_link(file_or_folder: Path):
         file_name=filepath.name
     )
 
-
-
+import promptflow
 
 def run_step(script_path, args=None, desc=None):
+    from pathlib import Path
+    import subprocess
+    import sys
+    import os
+
     args = args or []
     cmd = [sys.executable, str(script_path)] + args
+    print("Executable:", sys.executable)
+    print("sys.path:", sys.path)
+    print("promptflow.__file__:", promptflow.__file__)
+
+    # Augment env with current sys.path for safe PYTHONPATH inheritance
+    env = os.environ.copy()
+    env["PYTHONPATH"] = ":".join(sys.path)
+
     with st.status(desc or f"Running {Path(script_path).name}", expanded=True) as status:
         try:
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-            st.code(result.stdout)
+            result = subprocess.run(
+                cmd,
+                check=True,
+                capture_output=True,
+                text=True,
+                env=env  # ✅ pass custom env
+            )
+            if result.stdout:
+                st.subheader("Standard Output")
+                st.code(result.stdout)
+            if result.stderr:
+                st.subheader("Standard Error")
+                st.code(result.stderr)
+            if not result.stdout and not result.stderr:
+                st.warning("No output captured. Script ran silently.")
+
             status.update(label="✅ Done", state="complete")
+
         except subprocess.CalledProcessError as e:
-            st.error(f"Error running {script_path}")
-            st.code(e.stderr or "Script failed")
+            st.error(f"❌ Error running `{script_path}` (exit code {e.returncode})")
+
+            if e.stdout:
+                st.subheader("Standard Output")
+                st.code(e.stdout)
+            if e.stderr:
+                st.subheader("Standard Error")
+                st.code(e.stderr)
+            if not e.stdout and not e.stderr:
+                st.warning("No output captured. The script may have crashed before producing logs.")
+
             status.update(label="❌ Failed", state="error")
+
+            # Show full traceback if script printed it
+            st.subheader("Traceback (from script if any)")
+            traceback_text = e.stderr or e.stdout or "No trace available."
+            st.code(traceback_text, language="python")
 
 
 def render():
