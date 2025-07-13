@@ -44,29 +44,30 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
-def ensure_promptflow_connection():
+
+
+from promptflow.client import PFClient
+from promptflow.entities import OpenAIConnection
+
+def ensure_openai_connection(name="open_ai_connection"):
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise RuntimeError(
-            "OPENAI_API_KEY not set. Define it in your environment or in Streamlit Cloud Secrets."
+        raise RuntimeError("Please set the OPENAI_API_KEY environment variable.")
+
+    pf = PFClient()
+    existing = [c.name for c in pf.connections.list()]
+    if name not in existing:
+        conn = OpenAIConnection(
+            name=name,
+            api_key=api_key,
+            api_base="https://api.openai.com/v1",
+            api_version="2024-06-01-preview",
         )
+        pf.connections.create_or_update(conn)
+        print(f"[✓] Created promptflow connection `{name}`")
+    else:
+        print(f"[✓] Found existing connection `{name}`")
 
-    # ✅ This is what promptflow CLI uses
-    default_pf_dir = os.path.expanduser("~/.promptflow")
-    os.makedirs(default_pf_dir, exist_ok=True)
-
-    connection_data = {
-        "open_ai_connection": {
-            "type": "open_ai",
-            "api_key": api_key,
-            "api_base": "https://api.openai.com/v1",
-            "api_type": "open_ai",
-            "api_version": "2024-06-01-preview"
-        }
-    }
-
-    with open(os.path.join(default_pf_dir, "connections.json"), "w") as f:
-        json.dump(connection_data, f, indent=2)
 
 
 # ensure_promptflow_connection()
@@ -157,10 +158,18 @@ def main():
 
     # ✅ Now it's safe to ensure PF connection
     try:
-        ensure_promptflow_connection()
+        ensure_openai_connection()
     except Exception as e:
         st.error(f"Failed to set up PromptFlow connection: {e}")
         return
+
+
+    # # ✅ Now it's safe to ensure PF connection
+    # try:
+    #     ensure_connection()
+    # except Exception as e:
+    #     st.error(f"Failed to set up connection: {e}")
+    #     return
 
 
 
