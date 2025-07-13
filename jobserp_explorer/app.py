@@ -49,25 +49,33 @@ load_dotenv()
 from promptflow.client import PFClient
 from promptflow.entities import OpenAIConnection
 
-def ensure_openai_connection(name="open_ai_connection"):
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("Please set the OPENAI_API_KEY environment variable.")
+# def ensure_openai_connection(name="open_ai_connection"):
+#     api_key = os.getenv("OPENAI_API_KEY")
+#     if not api_key:
+#         raise RuntimeError("Please set the OPENAI_API_KEY environment variable.")
 
-    pf = PFClient()
-    existing = [c.name for c in pf.connections.list()]
-    if name not in existing:
-        conn = OpenAIConnection(
-            name=name,
-            api_key=api_key,
-            api_base="https://api.openai.com/v1",
-            api_version="2024-06-01-preview",
-        )
-        pf.connections.create_or_update(conn)
-        print(f"[✓] Created promptflow connection `{name}`")
-    else:
-        print(f"[✓] Found existing connection `{name}`")
+#     pf = PFClient()
+#     existing = [c.name for c in pf.connections.list()]
+#     if name not in existing:
+#         conn = OpenAIConnection(
+#             name=name,
+#             api_key=api_key,
+#             api_base="https://api.openai.com/v1",
+#             api_version="2024-06-01-preview",
+#         )
+#         pf.connections.create_or_update(conn)
+#         print(f"[✓] Created promptflow connection `{name}`")
+#     else:
+#         print(f"[✓] Found existing connection `{name}`")
 
+
+import os
+from promptflow.entities import OpenAIConnection
+
+def get_runtime_openai_connection():
+    if not os.getenv("OPENAI_API_KEY"):
+        raise RuntimeError("OPENAI_API_KEY not set")
+    return OpenAIConnection.from_env()
 
 
 # ensure_promptflow_connection()
@@ -158,7 +166,7 @@ def main():
 
     # ✅ Now it's safe to ensure PF connection
     try:
-        ensure_openai_connection()
+        get_runtime_openai_connection()
     except Exception as e:
         st.error(f"Failed to set up PromptFlow connection: {e}")
         return
