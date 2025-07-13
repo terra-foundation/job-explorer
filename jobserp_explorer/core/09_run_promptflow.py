@@ -30,6 +30,35 @@ def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", d
     print(f"[ℹ] Flow directory: {flow_dir}")
 
     PYTHON_BIN = Path(sys.executable).resolve()  # capture early
+
+
+    # STEP: Setup connection before run
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if not openai_key:
+        raise RuntimeError("[✗] OPENAI_API_KEY environment variable not set.")
+
+    connection_file = flow_dir / ".promptflow" / "connections.yaml"
+    if not connection_file.exists():
+        print(f"[!] Skipping connection creation: {connection_file} not found.")
+    else:
+        connection_cmd = [
+            str(PYTHON_BIN), "-m", "promptflow._cli.pf", "connection", "create",
+            "--file", str(connection_file),
+            "--set", f"api_key={openai_key}",
+            "--name", "open_ai_connection"
+        ]
+        print("[🔌] Ensuring PromptFlow connection exists...")
+        print(" ".join(connection_cmd))
+        result = subprocess.run(connection_cmd, capture_output=True, text=True, env=env)
+        if result.returncode != 0:
+            print("[!] Connection creation failed:")
+            print(result.stderr)
+        else:
+            print("[✓] Connection ensured.")
+
+
+
+
     pf_command = [
         str(PYTHON_BIN), "-m", "promptflow._cli.pf", "run", "create",
         "--flow", str(flow_dir),
