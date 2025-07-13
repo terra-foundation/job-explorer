@@ -44,21 +44,21 @@ def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", d
     # if not connection_file.exists():
     #     print(f"[!] Skipping connection creation: {connection_file} not found.")
     # else:
-    #     # connection_cmd = [
-    #     #     str(PYTHON_BIN), "-m", "promptflow._cli.pf", "connection", "create",
-    #     #     "--file", str(connection_file),
-    #     #     "--set", f"api_key={openai_key}",
-    #     #     "--name", "open_ai_connection"
-    #     # ]
     connection_cmd = [
         str(PYTHON_BIN), "-m", "promptflow._cli.pf", "connection", "create",
-        "--name", "open_ai_connection",
-        "--type", "open_ai",
+        "--file", str(connection_file),
         "--set", f"api_key={openai_key}",
-        "--set", "api_base=https://api.openai.com/v1",
-        "--set", "api_type=open_ai",
-        "--set", "api_version=2024-06-01-preview"
+        "--name", "open_ai_connection"
     ]
+    # connection_cmd = [
+    #     str(PYTHON_BIN), "-m", "promptflow._cli.pf", "connection", "create",
+    #     "--name", "open_ai_connection",
+    #     "--type", "open_ai",
+    #     "--set", f"api_key={openai_key}",
+    #     "--set", "api_base=https://api.openai.com/v1",
+    #     "--set", "api_type=open_ai",
+    #     "--set", "api_version=2024-06-01-preview"
+    # ]
     print("[🔌] Ensuring PromptFlow connection exists...")
     print(" ".join(connection_cmd))
     result = subprocess.run(connection_cmd, capture_output=True, text=True, env=env)
