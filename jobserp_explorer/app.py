@@ -51,8 +51,9 @@ def ensure_promptflow_connection():
             "OPENAI_API_KEY not set. Define it in your environment or in Streamlit Cloud Secrets."
         )
 
-    pf_dir = os.path.join(os.path.dirname(__file__), ".promptflow")
-    os.makedirs(pf_dir, exist_ok=True)
+    # ✅ This is what promptflow CLI uses
+    default_pf_dir = os.path.expanduser("~/.promptflow")
+    os.makedirs(default_pf_dir, exist_ok=True)
 
     connection_data = {
         "open_ai_connection": {
@@ -64,8 +65,9 @@ def ensure_promptflow_connection():
         }
     }
 
-    with open(os.path.join(pf_dir, "connections.json"), "w") as f:
+    with open(os.path.join(default_pf_dir, "connections.json"), "w") as f:
         json.dump(connection_data, f, indent=2)
+
 
 # ensure_promptflow_connection()
 
@@ -145,7 +147,7 @@ def main():
     # user_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
     if user_key:
         os.environ["OPENAI_API_KEY"] = user_key
-        st.sidebar.success("API Key set successfully.")
+        # st.sidebar.success("API Key set successfully.")
     else:
         from dotenv import load_dotenv
         load_dotenv()
