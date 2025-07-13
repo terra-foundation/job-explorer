@@ -10,34 +10,67 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 
+# import os
+# import sys
+# import streamlit as st
+
+# st.subheader("Environment Sanity Check")
+
+# st.write("🧪 Python executable:")
+# st.code(sys.executable)
+
+# st.write("🧪 sys.path (first 5 entries):")
+# st.code("\n".join(sys.path[:5]))
+
+# try:
+#     import promptflow
+#     st.success(f"promptflow loaded from: {promptflow.__file__}")
+# except ImportError as e:
+#     st.error(f"promptflow not importable: {e}")
+
+
+
+# try:
+#     from promptflow.core import tool
+#     st.success("Successfully imported: promptflow.core.tool")
+# except Exception as e:
+#     st.error(f"Import failed: {e}")
+
+
+
 import os
-import sys
-import streamlit as st
+import json
 
-st.subheader("Environment Sanity Check")
+from dotenv import load_dotenv
+load_dotenv()
 
-st.write("🧪 Python executable:")
-st.code(sys.executable)
+def ensure_promptflow_connection():
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY not set. Define it in your environment or in Streamlit Cloud Secrets."
+        )
 
-st.write("🧪 sys.path (first 5 entries):")
-st.code("\n".join(sys.path[:5]))
+    pf_dir = os.path.join(os.path.dirname(__file__), ".promptflow")
+    os.makedirs(pf_dir, exist_ok=True)
 
-try:
-    import promptflow
-    st.success(f"promptflow loaded from: {promptflow.__file__}")
-except ImportError as e:
-    st.error(f"promptflow not importable: {e}")
+    connection_data = {
+        "open_ai_connection": {
+            "type": "open_ai",
+            "api_key": api_key,
+            "api_base": "https://api.openai.com/v1",
+            "api_type": "open_ai",
+            "api_version": "2024-06-01-preview"
+        }
+    }
 
+    with open(os.path.join(pf_dir, "connections.json"), "w") as f:
+        json.dump(connection_data, f, indent=2)
 
+ensure_promptflow_connection()
 
-try:
-    from promptflow.core import tool
-    st.success("Successfully imported: promptflow.core.tool")
-except Exception as e:
-    st.error(f"Import failed: {e}")
-
-
-
+# /home/matias/repos/jobserp_explorer/.env
+# os.environ["OPENAI_API_KEY"]
 
 def ensure_dependencies(modules):
     missing = []
