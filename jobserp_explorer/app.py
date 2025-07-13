@@ -67,7 +67,7 @@ def ensure_promptflow_connection():
     with open(os.path.join(pf_dir, "connections.json"), "w") as f:
         json.dump(connection_data, f, indent=2)
 
-ensure_promptflow_connection()
+# ensure_promptflow_connection()
 
 # /home/matias/repos/jobserp_explorer/.env
 # os.environ["OPENAI_API_KEY"]
@@ -139,6 +139,29 @@ else:
 def main():
     st.title("🚀 Job SERP Explorer")
 
+
+
+    # Ask for API key
+    # user_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
+    if user_key:
+        os.environ["OPENAI_API_KEY"] = user_key
+        st.sidebar.success("API Key set successfully.")
+    else:
+        from dotenv import load_dotenv
+        load_dotenv()
+        if not os.getenv("OPENAI_API_KEY"):
+            st.sidebar.warning("No API key found. App may not run correctly without it.")
+            return  # ⬅ prevent app from continuing
+
+    # ✅ Now it's safe to ensure PF connection
+    try:
+        ensure_promptflow_connection()
+    except Exception as e:
+        st.error(f"Failed to set up PromptFlow connection: {e}")
+        return
+
+
+
     selected_tab = st.sidebar.radio("Navigation", list(TAB_MAP.keys()))
 
     # Ensure session state holds a run_uid
@@ -146,6 +169,8 @@ def main():
 
     # Render tab
     TAB_MAP[selected_tab].render()
+
+    
 
 if __name__ == "__main__":
     main()
