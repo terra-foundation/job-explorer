@@ -146,6 +146,12 @@ else:
         st.sidebar.warning("No API key found. App may not run correctly without it.")
         # You can also trigger a 'demo mode' here if desired
 
+
+import os
+os.environ.setdefault("PYTHON_KEYRING_BACKEND", "keyrings.alt.file.PlaintextKeyring")
+
+
+
 # --- Main App ---
 def main():
     st.title("🚀 Job SERP Explorer")

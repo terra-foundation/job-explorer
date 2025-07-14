@@ -12,6 +12,10 @@ if not importlib.util.find_spec("promptflow._cli.pf"):
     print("[✗] promptflow._cli.pf module not found in current environment.")
     sys.exit(1)
 
+import os
+os.environ.setdefault("PYTHON_KEYRING_BACKEND", "keyrings.alt.file.PlaintextKeyring")
+
+
 
 def ensure_promptflow_connection(flow_dir, openai_key, connection_name="open_ai_connection"):
     from pathlib import Path
