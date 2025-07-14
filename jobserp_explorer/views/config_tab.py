@@ -18,6 +18,8 @@ def render():
 
     st.header("🔐 API Keys")
 
+    import os
+    
     # Environment-style keys (not persisted to file)
     openai_key = st.text_input("OpenAI API Key", type="password", value=os.getenv("OPENAI_API_KEY") or "")
     spider_key = st.text_input("Spider API Key", type="password", value=os.getenv("SPIDER_API_KEY") or "")
