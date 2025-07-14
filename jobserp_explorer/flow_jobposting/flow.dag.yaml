@@ -12,7 +12,6 @@ inputs:
   scraped_data:
     type: string
 
-
 outputs:
   id:
     type: string
@@ -24,8 +23,6 @@ outputs:
     type: object
     reference: ${llm_node.output}
 
-
-
 nodes:
   - name: prompt_template
     type: prompt
@@ -36,6 +33,7 @@ nodes:
       job_index: ${inputs.job_index}
       job_title: ${inputs.job_title}
       company: ${inputs.company}
+      serp_url: ${inputs.serp_url}
       scraped_data: ${inputs.scraped_data}
 
   - name: llm_node

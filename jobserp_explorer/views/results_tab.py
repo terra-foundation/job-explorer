@@ -35,40 +35,42 @@ def render():
     match_dir = selected_run / "07_final_scored"
     serp_dir = selected_run / "04_serp_jsonl_input"
 
-    match_files = sorted(match_dir.glob("*.jsonl"))
-    serp_files = sorted(serp_dir.glob("*.jsonl"))
+    # match_files = sorted(match_dir.glob("*.jsonl"))
+    # serp_files = sorted(serp_dir.glob("*.jsonl"))
 
-    if not match_files or not serp_files:
-        st.warning("This run has no valid match/SERP files.")
+    # if not match_files or not serp_files:
+    #     st.warning("This run has no valid match/SERP files.")
+    #     return
+
+    try:
+        selected_match_file = sorted(match_dir.glob("*.jsonl"))[-1]
+        selected_serp_file = sorted(serp_dir.glob("*.jsonl"))[-1]
+    except IndexError:
+        st.warning("Run directory is missing final match or serp file.")
         return
-
-    selected_match_file = st.selectbox("Select Final Match File:", match_files)
-    selected_serp_file = st.selectbox("Select SERP Info File:", serp_files)
 
     # === Step 2: Load and display ===
     match_data = load_jsonl(selected_match_file)
-    serp_data = load_jsonl(selected_serp_file)
+    # serp_data = load_jsonl(selected_serp_file)
 
     # === Compact Summary Table ===
-    st.subheader("📋 Compact Match Table")
+    # st.subheader("📋 Compact Match Table")
 
+
+    # Dynamically collect all fields in summary
+    all_fields = sorted({k for entry in match_data for k in entry.get("summary", {}).keys()})
+
+    # Table with dynamic fields
+    st.subheader("📋 Dynamic Match Table")
     table_data = []
     for entry in match_data:
-        s = entry["summary"]
-        table_data.append({
-            "Line": entry["line_number"],
-            "Job Title": s.get("job_title"),
-            "Company": s.get("company_name"),
-            "Country": s.get("country"),
-            "Visa Required": s.get("visa_sponsorship_required"),
-            "Culture": s.get("company_culture"),
-            "Match?": s.get("potential_match"),
-            "Apply?": s.get("recommend_apply"),
-            "SERP URL": entry.get("serp_url"),
-        })
+        row = {"Line": entry.get("line_number"), "SERP URL": entry.get("serp_url")}
+        for field in all_fields:
+            row[field] = entry.get("summary", {}).get(field)
+        table_data.append(row)
 
-    df_table = pd.DataFrame(table_data)
-    st.dataframe(df_table, use_container_width=True)
+    st.dataframe(pd.DataFrame(table_data), use_container_width=True)
+
 
     # === Original Expander Cards (optional, can be removed) ===
     with st.expander("🔍 View Detailed Match Cards", expanded=False):

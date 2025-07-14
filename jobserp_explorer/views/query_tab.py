@@ -32,13 +32,24 @@ def run_step(script_path, args=None, desc=None):
 
     cmd = [sys.executable, str(full_script_path)] + args
 
+    # ✅ Define custom env
+    env = os.environ.copy()
+    env["PYTHON_KEYRING_BACKEND"] = "keyrings.alt.file.PlaintextKeyring"
+    env["PYTHONPATH"] = ":".join(sys.path)
+
     print("Executable:", sys.executable)
     print("sys.path:", sys.path)
     print("promptflow.__file__:", promptflow.__file__)
 
     with st.status(desc or f"Running {Path(script_path).name}", expanded=True) as status:
         try:
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            result = subprocess.run(
+                cmd,
+                check=True,
+                capture_output=True,
+                text=True,
+                env=env  # ✅ critical fix
+            )
             st.code(result.stdout)
             status.update(label="✅ Done", state="complete")
         except subprocess.CalledProcessError as e:
@@ -50,30 +61,9 @@ def run_step(script_path, args=None, desc=None):
                 st.subheader("Standard Error")
                 st.code(e.stderr)
             status.update(label="❌ Failed", state="error")
-
-            # Show full traceback if script printed it
             st.subheader("Traceback (from script if any)")
             traceback_text = e.stderr or e.stdout or "No trace available."
             st.code(traceback_text, language="python")
-
-# def run_step(script_path, args=None, desc=None):
-#     args = args or []
-#     cmd = [sys.executable, str(script_path)] + args
-#     with st.status(desc or f"Running {Path(script_path).name}", expanded=True) as status:
-#         try:
-#             result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-#             st.code(result.stdout)
-#             status.update(label="✅ Done", state="complete")
-#         except subprocess.CalledProcessError as e:
-#             st.error(f"Error running {script_path}")
-#             if e.stdout:
-#                 st.subheader("Standard Output")
-#                 st.code(e.stdout)
-#             if e.stderr:
-#                 st.subheader("Standard Error")
-#                 st.code(e.stderr)
-#             status.update(label="❌ Failed", state="error")
-
 
 def run_remotive_fetch(query: str, location: str, limit: int, output_path: Path) -> Path:
     search_term = query.strip()
@@ -97,10 +87,18 @@ def run_remotive_fetch(query: str, location: str, limit: int, output_path: Path)
         st.error(f"Failed to fetch jobs from Remotive:\n\n{e.stderr}")
         return None
 
-def run_pipeline_with_uid(run_uid: str):
+def run_pipeline_with_uid(run_uid: str, limit = None):
+
+    args = [
+        "--run_uid", run_uid
+    ]
+
+    if limit is not None:
+        args += ["--limit", str(limit)]
+
     return run_step(
         script_path="jobserp_explorer/core/10_run_full_pipeline.py",
-        args=["--run_uid", run_uid],
+        args=args,
         desc="Running full pipeline"
     )
 
@@ -170,7 +168,7 @@ def render():
         if auto_run:
             with st.spinner("Running full pipeline..."):
                 try:
-                    output = run_pipeline_with_uid(run_uid)
+                    output = run_pipeline_with_uid(run_uid, limit = result_limit)
                     st.success("✅ Pipeline completed successfully.")
                 except Exception as e:
                     st.error(str(e))

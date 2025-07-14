@@ -13,8 +13,7 @@ if not importlib.util.find_spec("promptflow._cli.pf"):
     sys.exit(1)
 
 import os
-os.environ.setdefault("PYTHON_KEYRING_BACKEND", "keyrings.alt.file.PlaintextKeyring")
-
+os.environ["PYTHON_KEYRING_BACKEND"] = "keyrings.alt.file.PlaintextKeyring"
 
 
 def ensure_promptflow_connection(flow_dir, openai_key, connection_name="open_ai_connection"):
@@ -22,6 +21,14 @@ def ensure_promptflow_connection(flow_dir, openai_key, connection_name="open_ai_
     import subprocess
     import os
     import sys
+
+    connection_yaml = os.path.join(flow_dir, ".promptflow", "connections.yml")
+    connection_name = "open_ai_connection"
+
+    env = os.environ.copy()
+    env["PYTHON_KEYRING_BACKEND"] = "keyrings.alt.file.PlaintextKeyring"  # ✅
+    env["OPENAI_API_KEY"] = openai_key  # ✅ ensure value is present in env
+    
 
     PYTHON_BIN = Path(sys.executable).resolve()
 
@@ -36,7 +43,12 @@ def ensure_promptflow_connection(flow_dir, openai_key, connection_name="open_ai_
     print(f"[🔌] Ensuring PromptFlow connection exists...")
     print(" ".join(connection_cmd))
 
-    result = subprocess.run(connection_cmd, capture_output=True, text=True)
+    result = subprocess.run(connection_cmd, 
+        capture_output=True, 
+        text=True, 
+        env=env
+        )
+
     if result.returncode != 0:
         print("[✗] Connection creation failed.")
         print("[📤] STDOUT:\n" + result.stdout)
@@ -68,8 +80,6 @@ def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", d
 
     env = os.environ.copy()
     env["PYTHONPATH"] = ":".join(sys.path)
-
-
 
     # This should be set in the environment or secrets.toml
     openai_key = os.environ.get("OPENAI_API_KEY")

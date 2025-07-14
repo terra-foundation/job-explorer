@@ -107,6 +107,7 @@ TAB_MAP = {
     "📝 Prompt Editor": jinja_editor_tab,
     "✏️ Schema Editor": json_editor_tab,
     "⚙️ Config": config_tab,
+    # "Debug": debugger,
 }
 
 # ✅ First Streamlit call
@@ -148,8 +149,7 @@ else:
 
 
 import os
-os.environ.setdefault("PYTHON_KEYRING_BACKEND", "keyrings.alt.file.PlaintextKeyring")
-
+os.environ["PYTHON_KEYRING_BACKEND"] = "keyrings.alt.file.PlaintextKeyring"
 
 
 # --- Main App ---

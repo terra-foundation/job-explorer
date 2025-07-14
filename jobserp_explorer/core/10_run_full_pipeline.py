@@ -42,7 +42,7 @@ def run_command(cmd, desc=None):
 import json
 from datetime import datetime
 
-def main(query=None, input_csv=None, run_uid=None):
+def main(query=None, input_csv=None, run_uid=None, limit=None):
     timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
     if not run_uid:
         run_uid = timestamp  # fallback if none passed
@@ -72,12 +72,16 @@ def main(query=None, input_csv=None, run_uid=None):
         # jobs_dir.mkdir(parents=True, exist_ok=True)
         input_csv = paths["query_csv"]
 
-        run_command([
+        args = [
             sys.executable, "jobserp_explorer/core/00_fetch_remotive_jobs.py",
             "--query", query,
-            "--limit", "3",
             "--output", str(input_csv)
-        ], desc="Step 00: Fetch from Remotive")
+        ]
+
+        if limit is not None:
+            args += ["--limit", str(limit)]
+
+        run_command(args, desc="Step 00: Fetch from Remotive")
 
     # elif input_csv:
     #     input_csv = Path(input_csv).resolve()
@@ -164,12 +168,26 @@ def main(query=None, input_csv=None, run_uid=None):
     ], desc="Step 2: Run SERP-based page classification")
 
 
-    # Step 4: Scrape selected pages with Selenium
-    run_command([
-        sys.executable, "jobserp_explorer/core/05_export_jsonl_with_scraping.py",
+    # # Step 4: Scrape selected pages with Selenium
+    # run_command([
+    #     sys.executable, "jobserp_explorer/core/05_export_jsonl_with_scraping.py",
+    #     "--input_dir", str(results_scored),
+    #     "--output_dir", str(html_scraped)
+    # ], desc="Step 4: Scrape top SERP pages")
+
+
+    # Step 4: Scrape selected pages with Spider API
+    scrape_script = "jobserp_explorer/core/05_export_jsonl_with_scraping.py"
+    scrape_args = [
+        sys.executable, scrape_script,
         "--input_dir", str(results_scored),
-        "--output_dir", str(html_scraped)
-    ], desc="Step 4: Scrape top SERP pages")
+        "--output_dir", str(html_scraped),
+        "--format", "markdown",
+        "--readability",
+        "--clean_html",
+        "--main_only"
+    ]
+    run_command(scrape_args, desc="Step 4: Scrape top SERP pages with Spider")
 
     # Step 6: Run PromptFlow for final match scoring
     # Select most recent JSONL
@@ -199,6 +217,7 @@ if __name__ == "__main__":
     parser.add_argument("--query", type=str, help="Search query for Remotive")
     parser.add_argument("--input_csv", type=str, help="Optional CSV file path")
     parser.add_argument("--run_uid", type=str, required=True, help="Run UID (e.g., 20250710T140520)")
+    parser.add_argument("--limit", type=int, required=False, help="Limit for step zero search.")
     args = parser.parse_args()
 
     run = RunManager(args.run_uid)
@@ -220,4 +239,4 @@ if __name__ == "__main__":
     print(f"[📥] Using input CSV: {input_csv}")
 
     # Launch main
-    main(query=query, input_csv=input_csv, run_uid=args.run_uid)
+    main(query=query, input_csv=input_csv, run_uid=args.run_uid, limit = args.limit)

@@ -1,0 +1,10 @@
+{
+  "open_ai_connection": {
+    "type": "open_ai",
+    "api_key": "${OPENAI_API_KEY}",
+    "api_base": "https://api.openai.com/v1",
+    "api_type": "open_ai",
+    "api_version": "2024-06-01-preview"
+  }
+}
+
