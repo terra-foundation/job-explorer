@@ -10,6 +10,6 @@ streamlit==1.46.1
 tqdm==4.67.1
 keyrings.alt==5.0.0
 azure-core>=1.29.1
-azure-monitor-opentelemetry-exporter>=1.0.0
-opentelemetry-sdk>=1.22.0
 protobuf>=4.21.0
+opentelemetry-sdk>=1.22.0
+azure-monitor-opentelemetry-exporter==1.0.0b39  # <- fix here
