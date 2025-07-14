@@ -24,7 +24,7 @@ def ensure_promptflow_connection(flow_dir, openai_key, connection_name="open_ai_
     # Prefer overriding YAML via CLI instead of relying on system secrets or .env resolution
     connection_cmd = [
         str(PYTHON_BIN), "-m", "promptflow._cli.pf", "connection", "create",
-        "--file", str(Path(flow_dir) / ".promptflow" / "connections.yaml"),
+        "--file", str(Path(flow_dir) / ".promptflow" / "connections.yml"),
         "--set", f"api_key={openai_key}",
         "--name", connection_name,
     ]
