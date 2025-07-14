@@ -12,6 +12,37 @@ if not importlib.util.find_spec("promptflow._cli.pf"):
     print("[✗] promptflow._cli.pf module not found in current environment.")
     sys.exit(1)
 
+
+def ensure_promptflow_connection(flow_dir, openai_key, connection_name="open_ai_connection"):
+    from pathlib import Path
+    import subprocess
+    import os
+    import sys
+
+    PYTHON_BIN = Path(sys.executable).resolve()
+
+    # Prefer overriding YAML via CLI instead of relying on system secrets or .env resolution
+    connection_cmd = [
+        str(PYTHON_BIN), "-m", "promptflow._cli.pf", "connection", "create",
+        "--file", str(Path(flow_dir) / ".promptflow" / "connections.yaml"),
+        "--set", f"api_key={openai_key}",
+        "--name", connection_name, "--yes",
+    ]
+
+    print(f"[🔌] Ensuring PromptFlow connection exists...")
+    print(" ".join(connection_cmd))
+
+    result = subprocess.run(connection_cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print("[✗] Connection creation failed.")
+        print("[📤] STDOUT:\n" + result.stdout)
+        print("[📥] STDERR:\n" + result.stderr)
+        raise RuntimeError("Failed to create PromptFlow connection.")
+    else:
+        print("[✓] Connection created or already exists.")
+        print(result.stdout)
+
+
 def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", dry_run=False):
     import shutil
     input_path = Path(input_path).resolve()
@@ -35,39 +66,13 @@ def run_promptflow_flow(input_path, flow_dir, output_base="outputs/annotated", d
     env["PYTHONPATH"] = ":".join(sys.path)
 
 
-    # STEP: Setup connection before run
-    openai_key = os.getenv("OPENAI_API_KEY")
+
+    # This should be set in the environment or secrets.toml
+    openai_key = os.environ.get("OPENAI_API_KEY")
     if not openai_key:
-        raise RuntimeError("[✗] OPENAI_API_KEY environment variable not set.")
+        raise EnvironmentError("Missing OPENAI_API_KEY in environment.")
 
-    connection_file = flow_dir / ".promptflow" / "connections.yaml"
-    # if not connection_file.exists():
-    #     print(f"[!] Skipping connection creation: {connection_file} not found.")
-    # else:
-    connection_cmd = [
-        str(PYTHON_BIN), "-m", "promptflow._cli.pf", "connection", "create",
-        "--file", str(connection_file),
-        "--set", f"api_key={openai_key}",
-        "--name", "open_ai_connection"
-    ]
-    # connection_cmd = [
-    #     str(PYTHON_BIN), "-m", "promptflow._cli.pf", "connection", "create",
-    #     "--name", "open_ai_connection",
-    #     "--type", "open_ai",
-    #     "--set", f"api_key={openai_key}",
-    #     "--set", "api_base=https://api.openai.com/v1",
-    #     "--set", "api_type=open_ai",
-    #     "--set", "api_version=2024-06-01-preview"
-    # ]
-    print("[🔌] Ensuring PromptFlow connection exists...")
-    print(" ".join(connection_cmd))
-    result = subprocess.run(connection_cmd, capture_output=True, text=True, env=env)
-    if result.returncode != 0:
-        print("[!] Connection creation failed:")
-        print(result.stderr)
-    else:
-        print("[✓] Connection ensured.")
-
+    ensure_promptflow_connection(flow_dir, openai_key)
 
 
     # Execute
