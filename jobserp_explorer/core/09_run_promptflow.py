@@ -7,6 +7,20 @@ import argparse
 import sys
 import time
 
+
+
+import types
+import logging
+
+# Patch telemetry import BEFORE anything else
+fake_telemetry_module = types.ModuleType("promptflow._sdk._telemetry.logging_handler")
+fake_telemetry_module.PromptFlowSDKLogHandler = logging.NullHandler
+fake_telemetry_module.get_appinsights_log_handler = lambda: logging.NullHandler()
+sys.modules["promptflow._sdk._telemetry.logging_handler"] = fake_telemetry_module
+
+
+
+
 import importlib.util
 if not importlib.util.find_spec("promptflow._cli.pf"):
     print("[✗] promptflow._cli.pf module not found in current environment.")
