@@ -26,7 +26,7 @@ def ensure_promptflow_connection(flow_dir, openai_key, connection_name="open_ai_
         str(PYTHON_BIN), "-m", "promptflow._cli.pf", "connection", "create",
         "--file", str(Path(flow_dir) / ".promptflow" / "connections.yaml"),
         "--set", f"api_key={openai_key}",
-        "--name", connection_name, "--yes",
+        "--name", connection_name,
     ]
 
     print(f"[🔌] Ensuring PromptFlow connection exists...")
